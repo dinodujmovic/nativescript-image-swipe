@@ -17,6 +17,16 @@ import { EventData } from "data/observable";
 import { CoercibleProperty, Property } from "ui/core/view";
 import { ItemsSource } from "ui/list-picker";
 import { ScrollView } from "ui/scroll-view";
+import { Cache } from "ui/image-cache";
+
+export interface ImageAccessor {
+    loadImage(imageUrl: string, callback: (image: any) => void): void;
+    getImage(imageUrl: string): any;
+}
+
+export class ImageSwipeBase {
+    public static _imageCache: Cache;
+}
 
 export class ImageSwipe extends ScrollView {
     public static pageChangedEvent: string;
@@ -25,9 +35,13 @@ export class ImageSwipe extends ScrollView {
     public imageUrlProperty: string;
     public pageNumber: number;
     public allowZoom: boolean;
+    public showActivityIndicator: boolean;
 
     public ios: any; /* UIScrollView */
     public android: any; /* android.support.v4.view.ViewPager */
+
+    public nextPage(): void;
+    public prevPage(): void;
 }
 
 export interface PageChangeEventData extends EventData {
@@ -40,3 +54,5 @@ export const allowZoomProperty: Property<ImageSwipe, boolean>;
 export const pageNumberProperty: CoercibleProperty<ImageSwipe, number>;
 export const itemsProperty: Property<ImageSwipe, any[] | ItemsSource>;
 export const imageUrlPropertyProperty: Property<ImageSwipe, string>;
+export const loadImageProperty: Property<ImageSwipe, ImageAccessor>;
+export const showActivityIndiciator: Property<ImageSwipe, boolean>;

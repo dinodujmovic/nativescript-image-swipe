@@ -23,6 +23,7 @@ export class ImageSwipe extends ImageSwipeBase {
 
     private _views: Array<{ view: UIView; imageView: UIImageView; zoomDelegate: UIScrollViewZoomDelegateImpl }>;
     private _delegate: UIScrollViewPagedDelegate;
+    private _animateLoadPageValue: boolean = false;
 
     constructor() {
         super();
@@ -65,6 +66,30 @@ export class ImageSwipe extends ImageSwipeBase {
                 if (this._views[loop]) {
                     this._positionImageView(this._views[loop].imageView);
                 }
+            }
+        }
+    }
+
+    public [allowZoomProperty.setNative](value: boolean) {
+        for (const viewHolder of this._views) {
+            if (viewHolder) {
+                this._positionImageView(viewHolder.imageView);
+            }
+        }
+    }
+
+    public [allowZoomProperty.setNative](value: boolean) {
+        for (const viewHolder of this._views) {
+            if (viewHolder) {
+                this._positionImageView(viewHolder.imageView);
+            }
+        }
+    }
+
+    public [allowZoomProperty.setNative](value: boolean) {
+        for (const viewHolder of this._views) {
+            if (viewHolder) {
+                this._positionImageView(viewHolder.imageView);
             }
         }
     }
@@ -202,20 +227,22 @@ export class ImageSwipe extends ImageSwipeBase {
         zoomScrollView = UIScrollView.alloc().init();
         zoomScrollView.maximumZoomScale = 1;
         zoomScrollView.autoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
-
+        
         imageView = UIImageView.alloc().init();
 
         zoomScrollView.delegate = UIScrollViewZoomDelegateImpl.initWithOwnerAndZoomView(new WeakRef(this), new WeakRef(imageView));
 
-        activityIndicator = UIActivityIndicatorView.alloc().init();
-        activityIndicator.autoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
-        activityIndicator.hidesWhenStopped = true;
+        if (this.showActivityIndicator) {
+            activityIndicator = UIActivityIndicatorView.alloc().init();
+            activityIndicator.autoresizingMask = UIViewAutoresizing.FlexibleWidth | UIViewAutoresizing.FlexibleHeight;
+            activityIndicator.hidesWhenStopped = true;
+            view.addSubview(activityIndicator);
+        }
 
         zoomScrollView.addSubview(imageView);
-        view.addSubview(activityIndicator);
         view.addSubview(zoomScrollView);
-
         scrollView.addSubview(view);
+
         this._views[page] = {
             view,
             imageView,
@@ -224,19 +251,21 @@ export class ImageSwipe extends ImageSwipeBase {
 
         this._resizeNativeViews(page);
 
-        activityIndicator.startAnimating();
+        if (activityIndicator) {
+            activityIndicator.startAnimating();
+        }
 
-        image = ImageSwipeBase._imageCache.get(imageUrl);
+        image = this._imageAccessor.getImage(imageUrl);
         if (image) {
             this._prepareImageView(image, imageView);
-            activityIndicator.stopAnimating();
+            if (activityIndicator) {
+                activityIndicator.stopAnimating();
+            }
         }
         else {
-            ImageSwipeBase._imageCache.push({
-                key: imageUrl,
-                url: imageUrl,
-                completed: (imageSource) => {
-                    this._prepareImageView(imageSource, imageView);
+            this._imageAccessor.loadImage(imageUrl, (imageSource: UIImage) => {
+                this._prepareImageView(imageSource, imageView);
+                if (activityIndicator) {
                     activityIndicator.stopAnimating();
                 }
             });
@@ -279,6 +308,10 @@ export class ImageSwipe extends ImageSwipeBase {
 
         const pageView = this._views[page];
         if (pageView) {
+            pageView.imageView.image = null; // otherwise remove from super view might release the image, which 
+                                             // might be retrieved from a shared ImageCache instance across
+                                             // the entire application. This causes then a call of an already
+                                             // release instance from the ImageCache's MemmoryWarningHandler.
             pageView.view.removeFromSuperview();
         }
 
@@ -318,6 +351,10 @@ class UIScrollViewPagedDelegate extends NSObject implements UIScrollViewDelegate
 
     public scrollViewDidScroll(scrollView: UIScrollView) {
         this._owner.get().isScrollingIn = true;
+    }
+
+    public scrollViewDidEndScrollingAnimation(scrollView: UIScrollView) {
+        this._owner.get().isScrollingIn = false;
     }
 
     public scrollViewDidEndDecelerating(scrollView: UIScrollView) {

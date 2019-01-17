@@ -87,6 +87,14 @@ export class ImageSwipe extends ImageSwipeBase {
         // Coerce selected index after we have set items to native view.
         pageNumberProperty.coerce(this);
     }
+
+    public nextPage(): void {
+        this.pageNumber ++;
+    }
+
+    public prevPage(): void {
+        this.pageNumber --;
+    }
 }
 
 @Interfaces([android.support.v4.view.ViewPager.OnPageChangeListener])
@@ -158,6 +166,7 @@ class StateViewPager extends android.support.v4.view.ViewPager {
 }
 
 class ImageSwipePageAdapter extends android.support.v4.view.PagerAdapter {
+
     constructor(private owner: WeakRef<ImageSwipe>) {
         super();
 
@@ -182,31 +191,36 @@ class ImageSwipePageAdapter extends android.support.v4.view.PagerAdapter {
             }
         }));
 
-        const progressBar = new android.widget.ProgressBar(owner._context);
-        progressBar.setLayoutParams(params);
-        progressBar.setVisibility(android.view.View.GONE);
-        progressBar.setIndeterminate(true);
-
         const layout = new android.widget.LinearLayout(owner._context);
         layout.setLayoutParams(params);
         layout.setOrientation(android.widget.LinearLayout.VERTICAL);
-        layout.addView(progressBar);
-        layout.addView(imageView);
 
+        let progressBar;
+        if (owner.showActivityIndicator) {
+            progressBar = new android.widget.ProgressBar(owner._context);
+            progressBar.setLayoutParams(params);
+            progressBar.setVisibility(android.view.View.GONE);
+            progressBar.setIndeterminate(true);
+            layout.addView(progressBar);
+        }
+
+        layout.addView(imageView);
         container.addView(layout);
 
-        progressBar.setVisibility(android.view.View.VISIBLE);
-        const image: android.graphics.Bitmap = ImageSwipeBase._imageCache.get(imageUrl);
+        if (progressBar) {
+            progressBar.setVisibility(android.view.View.VISIBLE);
+        }
+        const image: android.graphics.Bitmap = owner._imageAccessor.getImage(imageUrl);
         if (image) {
             imageView.setImageBitmap(image);
-            progressBar.setVisibility(android.view.View.GONE);
+            if (progressBar) {
+                progressBar.setVisibility(android.view.View.GONE);
+            }
         }
         else {
-            ImageSwipeBase._imageCache.push({
-                key: imageUrl,
-                url: imageUrl,
-                completed: (bitmap: android.graphics.Bitmap) => {
-                    imageView.setImageBitmap(bitmap);
+            owner._imageAccessor.loadImage(imageUrl, (bitmap: android.graphics.Bitmap) => {
+                imageView.setImageBitmap(bitmap);
+                if (progressBar) {
                     progressBar.setVisibility(android.view.View.GONE);
                 }
             });
@@ -261,9 +275,12 @@ class ZoomImageView extends android.widget.ImageView {
         this._detector = new android.view.ScaleGestureDetector(context, new android.view.ScaleGestureDetector.OnScaleGestureListener({
             onScale: (detector: android.view.ScaleGestureDetector): boolean => {
                 const owner = that.get();
-
-                owner.setScaleFactor(owner.getScaleFactor() * detector.getScaleFactor());
-                return true;
+                if (owner) {
+                    owner.setScaleFactor(owner.getScaleFactor() * detector.getScaleFactor());
+                    return true;
+                } else {
+                    return false;
+                }
             },
             onScaleBegin: () => true,
             // tslint:disable-next-line:no-empty

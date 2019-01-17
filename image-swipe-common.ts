@@ -17,7 +17,7 @@ import { CSSType, CoercibleProperty, Property } from "ui/core/view";
 import { Cache } from "ui/image-cache";
 import { ItemsSource } from "ui/list-picker";
 import { ScrollView } from "ui/scroll-view";
-import { ImageSwipe as ImageSwipeDefinition } from ".";
+import { ImageSwipe as ImageSwipeDefinition, ImageAccessor } from ".";
 
 export * from "ui/scroll-view";
 
@@ -32,6 +32,8 @@ export class ImageSwipeBase extends ScrollView implements ImageSwipeDefinition {
     public imageUrlProperty: string;
     public isItemsSourceIn: boolean;
     public allowZoom: boolean;
+    public showActivityIndicator: boolean;
+    public _imageAccessor: any;
 
     constructor() {
         super();
@@ -43,6 +45,14 @@ export class ImageSwipeBase extends ScrollView implements ImageSwipeDefinition {
 
     public _getDataItem(index: number): any {
         return this.isItemsSourceIn ? (this.items as ItemsSource).getItem(index) : this.items[index];
+    }
+
+    public nextPage(): void {
+        this.pageNumber ++;
+    }
+
+    public prevPage(): void {
+        this.pageNumber --;
     }
 }
 
@@ -91,3 +101,15 @@ export const allowZoomProperty = new Property<ImageSwipeBase, boolean>({
     defaultValue: true
 });
 allowZoomProperty.register(ImageSwipeBase);
+
+export const loadImageProperty = new Property<ImageSwipeBase, ImageAccessor>({
+    name: "imageAccessor",
+    defaultValue: null
+});
+loadImageProperty.register(ImageSwipeBase);
+
+export const showActivityIndiciator = new Property<ImageSwipeBase, boolean>({
+    name: "showActivityIndicator",
+    defaultValue: true
+});
+showActivityIndiciator.register(ImageSwipeBase);
