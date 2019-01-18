@@ -210,7 +210,7 @@ class ImageSwipePageAdapter extends android.support.v4.view.PagerAdapter {
         if (progressBar) {
             progressBar.setVisibility(android.view.View.VISIBLE);
         }
-        const image: android.graphics.Bitmap = owner._imageAccessor.getImage(imageUrl);
+        const image: android.graphics.Bitmap = owner.imageAccessor.getImage(imageUrl);
         if (image) {
             imageView.setImageBitmap(image);
             if (progressBar) {
@@ -218,7 +218,7 @@ class ImageSwipePageAdapter extends android.support.v4.view.PagerAdapter {
             }
         }
         else {
-            owner._imageAccessor.loadImage(imageUrl, (bitmap: android.graphics.Bitmap) => {
+            owner.imageAccessor.loadImage(imageUrl, (bitmap: android.graphics.Bitmap) => {
                 imageView.setImageBitmap(bitmap);
                 if (progressBar) {
                     progressBar.setVisibility(android.view.View.GONE);

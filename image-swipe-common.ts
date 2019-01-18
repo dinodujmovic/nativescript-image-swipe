@@ -33,7 +33,7 @@ export class ImageSwipeBase extends ScrollView implements ImageSwipeDefinition {
     public isItemsSourceIn: boolean;
     public allowZoom: boolean;
     public showActivityIndicator: boolean;
-    public _imageAccessor: any;
+    public imageAccessor: any;
 
     constructor() {
         super();

@@ -255,7 +255,7 @@ export class ImageSwipe extends ImageSwipeBase {
             activityIndicator.startAnimating();
         }
 
-        image = this._imageAccessor.getImage(imageUrl);
+        image = this.imageAccessor.getImage(imageUrl);
         if (image) {
             this._prepareImageView(image, imageView);
             if (activityIndicator) {
@@ -263,7 +263,7 @@ export class ImageSwipe extends ImageSwipeBase {
             }
         }
         else {
-            this._imageAccessor.loadImage(imageUrl, (imageSource: UIImage) => {
+            this.imageAccessor.loadImage(imageUrl, (imageSource: UIImage) => {
                 this._prepareImageView(imageSource, imageView);
                 if (activityIndicator) {
                     activityIndicator.stopAnimating();
