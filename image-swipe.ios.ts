@@ -41,6 +41,10 @@ export class ImageSwipe extends ImageSwipeBase {
     public onLoaded() {
         super.onLoaded();
         (this.ios as UIScrollView).delegate = this._delegate;
+        if (this.pageNumber !== undefined && this.pageNumber !== null) {
+            this._purgeAllPages();
+            this._loadCurrentPage(this.pageNumber);
+        }
     }
 
     public onUnloaded() {
@@ -149,6 +153,14 @@ export class ImageSwipe extends ImageSwipeBase {
 
         contentsFrame.origin = CGPointMake(newPosition.x, newPosition.y);
         imageView.frame = contentsFrame;
+    }
+
+    public nextPage(): void {
+        this.pageNumber ++;
+    }
+
+    public prevPage(): void {
+        this.pageNumber --;
     }
 
     private _loadCurrentPage(page: number) {
